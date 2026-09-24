@@ -2,9 +2,9 @@
 
 ## Estado comprobado del repositorio
 
-Al 2026-09-17 este repositorio no contiene `package.json`, código TypeScript, configuración React/Angular, rutas, estilos/tokens, pruebas ni documentación de un diseño Stitch/AI Studio aprobado. No hay HU, criterios de aceptación ni DoD disponibles en este repositorio.
+El 2026-09-24 se importó el proyecto React/Vite de `portal-de-citas.zip`, confirmado por el usuario como la referencia visual AI Studio aprobada. El repositorio usa TypeScript, React, Vite y Tailwind. Su estética (tarjeta blanca, panel editorial azul oscuro, tipografía y controles) debe preservarse al conectar flujos reales.
 
-No elegir React ni Angular hasta que el estudiante importe el proyecto generado por Google AI Studio. Tras esa importación, inspeccionar primero `package.json`, configuración, estructura de `src`, enrutamiento, estilos/tokens, scripts y la documentación/artefactos del diseño aprobado antes de proponer cambios.
+La reconciliación inicial cubre HU-005: registro de paciente y catálogo opcional de planes de salud mediante REST. Las pantallas de agenda, profesionales y autenticación completa no se consideran implementadas mientras no tengan un contrato y una HU verificados.
 
 ## Responsabilidad exclusiva
 
@@ -34,7 +34,7 @@ La UI consume `citas-api` directamente por REST. No añadir Express, BFF ni lóg
 - No hardcodear tokens, secretos ni credenciales; no registrarlos en consola.
 - Tratar validaciones, disponibilidad, transiciones de cita, autorización y ownership como decisiones finales del backend. El cliente puede mejorar la experiencia, pero no sustituye la validación server-side.
 - Si falta o cambia un contrato REST, reportarlo al orquestador con el endpoint, payload, respuesta/error esperado, pantallas afectadas y evidencia requerida. No editar `../citas-api`.
-- No mantener una LLM Wiki propia; la memoria global está en `citas-api/docs/wiki/llm-wiki/` bajo responsabilidad del orquestador.
+- No mantener una LLM Wiki propia; la memoria global está en `citas-api/docs/FCV Dev/llm-wiki/` bajo responsabilidad del orquestador.
 
 ## Git
 
