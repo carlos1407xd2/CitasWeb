@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, getActiveInsurancePlans, registerUser } from './api';
+import { ApiError, getActiveInsurancePlans, getAvailability, registerUser } from './api';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -20,6 +20,18 @@ describe('API client', () => {
 
     await expect(registerUser({ firstName: 'Ana', lastName: 'Paz', documentType: 'CC', documentNumber: '1001', email: 'patient@example.test', password: 'Password123*', insurancePlanId: 1 })).resolves.toMatchObject({ insurancePlanId: 1 });
     expect(fetchMock.mock.calls[0][1]?.body).toContain('"insurancePlanId":1');
+  });
+
+  it('serializes availability filters without inventing client-side slots', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify([]), { status: 200 }),
+    );
+
+    await expect(getAvailability({ date: '2026-10-01', locationId: 1, specialtyId: 2 })).resolves.toEqual([]);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:8080/api/v1/availability?date=2026-10-01&locationId=1&specialtyId=2',
+      expect.any(Object),
+    );
   });
 
   it('exposes typed backend errors', async () => {

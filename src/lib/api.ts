@@ -20,6 +20,14 @@ export interface RegistrationResult {
   insurancePlanId: number | null;
 }
 
+export interface FreeSlot {
+  slotId: number;
+  professionalId: number;
+  locationId: number;
+  startAt: string;
+  endAt: string;
+}
+
 export class ApiError extends Error {
   constructor(public readonly status: number, public readonly code: string) {
     super(code);
@@ -41,6 +49,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const getActiveInsurancePlans = () => request<InsurancePlan[]>('/api/v1/catalogs/insurance-plans');
+
+export const getAvailability = (filters: {
+  date: string;
+  locationId?: number;
+  specialtyId?: number;
+  professionalId?: number;
+}) => {
+  const query = new URLSearchParams({ date: filters.date });
+  if (filters.locationId !== undefined) query.set('locationId', String(filters.locationId));
+  if (filters.specialtyId !== undefined) query.set('specialtyId', String(filters.specialtyId));
+  if (filters.professionalId !== undefined) query.set('professionalId', String(filters.professionalId));
+  return request<FreeSlot[]>(`/api/v1/availability?${query.toString()}`);
+};
 
 export const registerUser = (payload: RegistrationPayload) =>
   request<RegistrationResult>('/api/v1/auth/register', {
