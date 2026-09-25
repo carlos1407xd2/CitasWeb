@@ -34,6 +34,8 @@ export interface Location { id: number; code: string; name: string; address: str
 export interface Specialty { id: number; code: string; name: string; appointmentDurationMinutes: number; general: boolean; requiresAdminApproval: boolean; }
 export interface BookingPayload { professionalId: number; locationId: number; specialtyId: number; startAt: string; reason?: string; }
 export interface BookingResult { appointmentId: number; status: string; }
+export interface AppointmentSummary { id: number; professionalId: number; professionalName: string; locationId: number; locationName: string; specialtyId: number; specialtyName: string; startAt: string; endAt: string; status: string; reason: string | null; }
+export interface StatusHistory { status: string; source: string; actorUserId: number | null; reason: string | null; changedAt: string; }
 
 export class ApiError extends Error {
   constructor(public readonly status: number, public readonly code: string) {
@@ -93,3 +95,9 @@ export const bookAppointment = (payload: BookingPayload, accessToken: string) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }, accessToken);
+
+export const getMyAppointments = (accessToken: string) => request<AppointmentSummary[]>('/api/v1/appointments', undefined, accessToken);
+export const getAppointmentHistory = (appointmentId: number, accessToken: string) => request<StatusHistory[]>(`/api/v1/appointments/${appointmentId}/history`, undefined, accessToken);
+export const cancelAppointment = (appointmentId: number, accessToken: string, reason?: string) => request<void>(`/api/v1/appointments/${appointmentId}/cancel`, {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }),
+}, accessToken);
