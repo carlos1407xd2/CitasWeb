@@ -28,6 +28,9 @@ export interface FreeSlot {
   endAt: string;
 }
 
+export interface LoginPayload { email: string; password: string; deviceInfo?: string; }
+export interface LoginResult { accessToken: string; refreshToken: string | null; tokenType: 'Bearer'; expiresInSeconds: number; }
+
 export class ApiError extends Error {
   constructor(public readonly status: number, public readonly code: string) {
     super(code);
@@ -65,6 +68,13 @@ export const getAvailability = (filters: {
 
 export const registerUser = (payload: RegistrationPayload) =>
   request<RegistrationResult>('/api/v1/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+export const loginUser = (payload: LoginPayload) =>
+  request<LoginResult>('/api/v1/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
