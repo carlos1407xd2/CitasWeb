@@ -101,3 +101,7 @@ export const getAppointmentHistory = (appointmentId: number, accessToken: string
 export const cancelAppointment = (appointmentId: number, accessToken: string, reason?: string) => request<void>(`/api/v1/appointments/${appointmentId}/cancel`, {
   method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }),
 }, accessToken);
+
+export const requestReschedule = (appointmentId: number, payload: { locationId: number; startAt: string }, accessToken: string) => request<{ requestId: number; status: string }>(`/api/v1/appointments/${appointmentId}/reschedule-requests`, {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+}, accessToken);
