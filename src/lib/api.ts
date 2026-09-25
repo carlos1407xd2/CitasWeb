@@ -30,6 +30,10 @@ export interface FreeSlot {
 
 export interface LoginPayload { email: string; password: string; deviceInfo?: string; }
 export interface LoginResult { accessToken: string; refreshToken: string | null; tokenType: 'Bearer'; expiresInSeconds: number; }
+export interface Location { id: number; code: string; name: string; address: string; city: string; department: string; }
+export interface Specialty { id: number; code: string; name: string; appointmentDurationMinutes: number; general: boolean; requiresAdminApproval: boolean; }
+export interface BookingPayload { professionalId: number; locationId: number; specialtyId: number; startAt: string; reason?: string; }
+export interface BookingResult { appointmentId: number; status: string; }
 
 export class ApiError extends Error {
   constructor(public readonly status: number, public readonly code: string) {
@@ -39,10 +43,10 @@ export class ApiError extends Error {
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, accessToken?: string): Promise<T> {
   const response = await fetch(`${apiUrl}${path}`, {
     ...init,
-    headers: { Accept: 'application/json', ...init?.headers },
+    headers: { Accept: 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...init?.headers },
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({ code: 'REQUEST_FAILED' }));
@@ -58,13 +62,16 @@ export const getAvailability = (filters: {
   locationId?: number;
   specialtyId?: number;
   professionalId?: number;
-}) => {
+}, accessToken?: string) => {
   const query = new URLSearchParams({ date: filters.date });
   if (filters.locationId !== undefined) query.set('locationId', String(filters.locationId));
   if (filters.specialtyId !== undefined) query.set('specialtyId', String(filters.specialtyId));
   if (filters.professionalId !== undefined) query.set('professionalId', String(filters.professionalId));
-  return request<FreeSlot[]>(`/api/v1/availability?${query.toString()}`);
+  return request<FreeSlot[]>(`/api/v1/availability?${query.toString()}`, undefined, accessToken);
 };
+
+export const getLocations = () => request<Location[]>('/api/v1/catalogs/locations');
+export const getSpecialties = () => request<Specialty[]>('/api/v1/catalogs/specialties');
 
 export const registerUser = (payload: RegistrationPayload) =>
   request<RegistrationResult>('/api/v1/auth/register', {
@@ -79,3 +86,10 @@ export const loginUser = (payload: LoginPayload) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
+
+export const bookAppointment = (payload: BookingPayload, accessToken: string) =>
+  request<BookingResult>('/api/v1/appointments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }, accessToken);
