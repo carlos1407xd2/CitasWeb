@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, getActiveInsurancePlans, getAvailability, registerUser } from './api';
+import { ApiError, assignProfessionalLocations, assignProfessionalSpecialties, confirmPasswordReset, decideAdminAppointment, decideAdminReschedule, getActiveInsurancePlans, getAdminInbox, getAvailability, registerUser, requestPasswordReset } from './api';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -40,5 +40,37 @@ describe('API client', () => {
     );
 
     await expect(getActiveInsurancePlans()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('uses the password recovery contract without exposing tokens in the client', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(JSON.stringify({ developmentToken: 'synthetic-token' }), { status: 200 })).mockResolvedValueOnce(new Response(null, { status: 204 }));
+    const response = await requestPasswordReset('patient@example.test');
+    await confirmPasswordReset(response.developmentToken!, 'NewPassword123*');
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8080/api/v1/auth/password/request');
+    expect(fetchMock.mock.calls[1][0]).toBe('http://localhost:8080/api/v1/auth/password/confirm');
+  });
+
+  it('routes administrative decisions to the correct resource', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
+    await decideAdminAppointment(10, true, undefined, 'access');
+    await decideAdminReschedule(20, false, 'No disponibilidad', 'access');
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8080/api/v1/admin/appointments/10/approve');
+    expect(fetchMock.mock.calls[1][0]).toBe('http://localhost:8080/api/v1/admin/reschedule-requests/20/reject');
+  });
+
+  it('loads the administrative inbox with authorization', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ items: [] }), { status: 200 }));
+    await expect(getAdminInbox('access')).resolves.toEqual({ items: [] });
+    expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({ Authorization: 'Bearer access' });
+  });
+
+  it('serializes administrative inbox filters and professional assignments', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
+    await getAdminInbox('access', { from: '2026-10-01', to: '2026-10-31', locationId: 1, professionalId: 2, specialtyId: 3 });
+    await assignProfessionalSpecialties(9, [{ specialtyId: 3, primary: true }], 'access');
+    await assignProfessionalLocations(9, [1, 2], 'access');
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/admin/inbox?from=2026-10-01&to=2026-10-31&locationId=1&professionalId=2&specialtyId=3');
+    expect(fetchMock.mock.calls[1][0]).toBe('http://localhost:8080/api/v1/admin/professionals/9/specialties');
+    expect(fetchMock.mock.calls[2][0]).toBe('http://localhost:8080/api/v1/admin/professionals/9/locations');
   });
 });

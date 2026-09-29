@@ -5,9 +5,10 @@ import { loginUser } from '../lib/api';
 interface LoginScreenProps {
   onNavigateRegister: () => void;
   onLoginSuccess: (accessToken: string) => void;
+  onNavigateReset?: () => void;
 }
 
-export function LoginScreen({ onNavigateRegister, onLoginSuccess }: LoginScreenProps) {
+export function LoginScreen({ onNavigateRegister, onLoginSuccess, onNavigateReset }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export function LoginScreen({ onNavigateRegister, onLoginSuccess }: LoginScreenP
               <button disabled={loading} className="w-full rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60" type="submit">{loading ? 'Validando…' : 'Iniciar sesión'}</button>
             </form>
           </div>
-          <div className="mt-8 space-y-3 border-t border-slate-100 pt-6 text-center"><p className="text-sm text-slate-600">¿No tienes una cuenta? <button className="font-semibold text-blue-600 hover:text-blue-700" onClick={onNavigateRegister} type="button">Regístrate aquí</button></p><div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400"><ShieldCheck className="h-4 w-4" /> Tus datos se tratan de acuerdo con las políticas aprobadas del portal.</div></div>
+          <div className="mt-8 space-y-3 border-t border-slate-100 pt-6 text-center"><p className="text-sm text-slate-600">¿No tienes una cuenta? <button className="font-semibold text-blue-600 hover:text-blue-700" onClick={onNavigateRegister} type="button">Regístrate aquí</button></p>{onNavigateReset && <button className="text-sm font-medium text-blue-600" onClick={onNavigateReset} type="button">¿Olvidaste tu contraseña?</button>}<div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400"><ShieldCheck className="h-4 w-4" /> Tus datos se tratan de acuerdo con las políticas aprobadas del portal.</div></div>
         </section>
       </div>
     </main>
